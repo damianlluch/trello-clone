@@ -8,18 +8,26 @@
 <script>
     import List from './List';
     import ListDraft from './ListDraft';
-    import {mapState} from "vuex";
+    import {mapState, mapActions} from "vuex";
     export default {
         name: "Home",
         components: {
             List,
             ListDraft
         },
+        mounted() {
+            this.listsUser()
+        },
         computed: {
             ...mapState([
                 'lists'
             ])
         },
+        methods: {
+            ...mapActions([
+                'listsUser'
+            ]),
+        }
     }
 </script>
 

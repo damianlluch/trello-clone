@@ -12,6 +12,7 @@ const state = {
   status: '',
   token: localStorage.getItem('token') || '',
   user : {},
+  listsUser: [],
   lists: savedLists ? JSON.parse(savedLists) : [
     {
       title: 'To Do',
@@ -31,20 +32,34 @@ const state = {
       cards: []
     }
   ]
-};
+} ;
 
 const actions = {
+  listsUser({commit}){
+    return new Promise((resolve, reject) => {
+      commit('get_request')
+      let { lists } = Axios.get(process.env.VUE_APP_API_URL + 'lists', { headers: { Authorization: `Bearer ${this.state.token}` }})
+          .then(function (response) {
+            const lists = response.data.lists
+            commit('get_list', lists)
+            resolve(response)
+          })
+          .catch(function (error) {
+            commit('get_list')
+            reject(error)
+          })
+    })
+  },
   login({commit}, user){
-    console.log('entro')
     return new Promise((resolve, reject) => {
       commit('auth_request')
       Axios({url: process.env.VUE_APP_API_URL + 'users/login', data: user, method: 'POST' })
           .then(resp => {
-            const token = resp.data.token
-            const user = resp.data.user
+            console.log(resp.data)
+            const token = resp.data
             localStorage.setItem('token', token)
             Axios.defaults.headers.common['Authorization'] = token
-            commit('auth_success', token, user)
+            commit('auth_success', token)
             resolve(resp)
           })
           .catch(err => {
@@ -83,13 +98,19 @@ const actions = {
   }
 }
 const mutations = {
+  get_request(state){
+    console.log('entro')
+    state.status = 'loading'
+  },
+  get_list(state, list){
+    state.listsUser = list
+  },
   auth_request(state){
     state.status = 'loading'
   },
-  auth_success(state, token, user){
+  auth_success(state, token){
     state.status = 'success'
     state.token = token
-    state.user = user
   },
   auth_error(state){
     state.status = 'error'
